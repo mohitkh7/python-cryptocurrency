@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8" />
+    
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+    
+    <style type="text/css">
+        #thankCover{
+            padding:1em;
+        }
+        #tStyle{
+            font-size:20px;
+            text-align: center;
+            margin-top: 10em;
+        }
+        #ttStyle{
+            font-size:35px;
+        }
+
+    </style>
+
+</head>
+<body> 
+    <div class="container">
+        <div class="row" style="text-align: center;">
+                    <p id="tStyle">                         
+                        Redirecting to payment gateway .... 
+                    </p>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+<script>
+    $(document).ready(function() {
+        // Your delay in milliseconds
+        var delay = 2000;
+
+        setTimeout(function(){ window.location = "/payment-successful"; }, delay);
+    });
+</script>

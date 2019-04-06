@@ -63,7 +63,7 @@
                     <div class="col-md-8">
                         <p><a href="/dashboard"><< Back to Dashboard</a></p>
                         <h3>Purchase Rashi</h3>
-                        <form action="/payment">
+                        <form action="">
                             <div class="form-group">
                                 <label for="sender-address" >Price per Rashi in Rupees:</label>
                                 <input type="text" class="form-control" id="price" value="1572" readonly />
@@ -109,9 +109,38 @@
 </div>
 
 <script>
-    // check for input rashi value
-    $("#total-rashi").keyup(function(){
-        var amt = $(this).val() * 1572;
-        $("#total-amount").val(amt);
+    $(document).ready(function() {
+        // check for input rashi value
+        $("#total-rashi").keyup(function(){
+            var amt = $(this).val() * 1572;
+            $("#total-amount").val(amt);
+        });
+        $("#make-transaction").click(function(e) {
+            e.preventDefault();
+            if ($("#total-rashi").val() == ""){
+                $("#total-rashi").val(0)
+            }
+            var transaction_dict= {
+                'sender': '0',
+                'reciever': '{{ blockchain.public_key }}',
+                'amount': $("#total-rashi").val(),
+            };
+            $.ajax({
+                type: "POST",
+                url: "/transactions/new",
+                data: JSON.stringify(transaction_dict),
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                success: function(result) {
+                    console.log(result);
+                    window.location = "/payment-redirect";
+                },
+                error: function(result) {
+                    $("#error-msg").show();
+                    console.log(result);
+                }
+            });
+        });
     });
+
 </script>

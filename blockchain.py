@@ -1,5 +1,6 @@
 import hashlib
 import json
+import sys
 import requests
 from time import time
 from uuid import uuid4
@@ -19,7 +20,12 @@ class Blockchain(object):
     def __init__(self):
         self.chain = []
         self.current_transactions = []
-        self.nodes = set()
+        self.nodes = set(
+            "127.0.0.1:8000",
+            "127.0.0.1:8001",
+            "127.0.0.1:8002",
+            "127.0.0.1:8080",
+        )
         self.pending_transactions = []
         self.public_key = None
         self.private_key = None
@@ -335,6 +341,16 @@ def purchase_rashi():
     return render_template("purchase-rashi.html", blockchain=blockchain)
 
 
+@app.route('/payment-redirect')
+def payment_redirect():
+    return render_template("payment-redirect.html")
+
+
+@app.route('/payment-successful')
+def payment_successful():
+    return render_template("payment-successful.html")
+
+
 def manage_nodes(response):
     temp_set = set()
     for fb_id in response:
@@ -347,7 +363,11 @@ firebase.get_async('/nodes', None, callback=manage_nodes)
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8000)
+    if sys.argv[1]:
+        port_no = sys.argv[1]
+    else:
+        port_no = 8000
+    app.run(debug=False, host='0.0.0.0', port=port_no)
 
 
 """

@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+   
     <style>
         body{
             padding-top: 70px;
@@ -99,8 +99,46 @@
             <h4>Chain :</h4>
             <ul>
             {% for block in blockchain.chain %}
-                <li>{{ block }}</li>
-                <br>
+                <div class="panel-group">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-toggle="collapse" href="#collapse{{block.index}}">Block {{block.index}}</a>
+                            </h4>
+                        </div>
+                        <div id="collapse{{block.index}}" class="panel-collapse collapse">
+                            <div class="panel-body">
+                                <ul>
+                                    <li><b>Index : </b>{{ block.index }}</li>
+                                    <li><b>Timestamp : </b>{{ block.timestamp }}</li>
+                                    <li><b>Previous Block Hash : </b>{{ block.previous_hash }}</li>
+                                    <li><b>Nounce : </b>{{ block.proof }}</li>
+                                    <li>Transactions : </li>
+                                    {% for transaction in block.transactions %}
+                                        <div class="panel-group">
+                                            <div class="panel panel-default">
+                                                <div class="panel-heading">
+                                                    <h4 class="panel-title">
+                                                        <a data-toggle="collapse" href="#transaction{{loop.index}}">Transaction {{loop.index}}</a>
+                                                    </h4>
+                                                </div>
+                                                <div id="transaction{{loop.index}}" class="panel-collapse collapse">
+                                                    <div class="panel-body">
+                                                        <ul>
+                                                            <li> <b>Sender</b> : {{transaction.sender}}</li>
+                                                            <li> <b>Reciever</b> : {{transaction.reciever}}</li>
+                                                            <li> <b>Rashi(s)</b> : {{transaction.amount}}</li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             {% endfor %}
             </ul>
         </p>
