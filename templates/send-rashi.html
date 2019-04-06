@@ -54,9 +54,11 @@
                 <div class="row">
                     <div class="col-md-4" style="text-align: center; padding-top: 20px; ">
                         <img src="images/icon.png"/><br><br>
-                        <h3>Account 1</h3>
+                        <h3>Lorem Ipsum</h3>
                         <p>Public Key : {{blockchain.public_key}}</p>
                         <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#myModal">Show Private Key</button>
+                        <br><br>
+                        <p>Balance : <b>{{ blockchain.balance}} Rashi(s)</b></p>
                     </div>
                     <div class="col-md-8">
                         <p><a href="/dashboard"><< Back to Dashboard</a></p>
@@ -78,9 +80,10 @@
                                 <label for="reciever-address" >Reciever address:</label>
                                 <input type="text" class="form-control" id="reciever-address" autocomplete="off" />
                             </div>
-                            <div class="form-group">
+                            <div class="form-group" id="rashi-div">
                                 <label for="rashi" >Rashi:</label>
                                 <input type="number" class="form-control" id="rashi"/>
+                                <p class="text-danger" id="rashi-help-text">You do not have sufficient rashi(s)</p>
                             </div>
                             <button id="make-transaction" class="btn btn-success">Make Transaction</button>
                         </form>
@@ -117,6 +120,8 @@
     $(document).ready(function() {
         $("#success-msg").hide();
         $("#error-msg").hide();
+        $("#rashi-help-text").hide();
+
         // marking new transaction
         $("#make-transaction").click(function(e) {
             e.preventDefault();
@@ -125,7 +130,6 @@
                 'reciever': $("#reciever-address").val(),
                 'amount': $("#rashi").val(),
             };
-            console.log($("#rashi").val());
             $.ajax({
                 type: "POST",
                 url: "/transactions/new",
@@ -135,6 +139,9 @@
                 success: function(result) {
                     $("#success-msg").show();
                     console.log(result);
+                    // clear form
+                    $('#reciever-address').val('');
+                    $('#rashi').val('');
                 },
                 error: function(result) {
                     $("#error-msg").show();
@@ -142,5 +149,28 @@
                 }
             });
         });
+
+        // check for input rashi value
+        $("#rashi").keyup(function(){
+            console.log(this.value);
+            if({{ blockchain.balance }} < this.value){
+                // something wrong
+                $("#rashi-div").addClass("has-error");
+                $("#rashi-div").removeClass("has-success");
+                $('#make-transaction').prop('disabled', true);
+                $("#rashi-help-text").show();
+
+            }
+            else{
+                // all good
+                $('#make-transaction').prop('disabled', false);
+                $("#rashi-div").addClass("has-success");
+                $("#rashi-div").removeClass("has-error");
+                $("#rashi-help-text").hide();
+
+
+            }
+        });
+
     });
 </script>

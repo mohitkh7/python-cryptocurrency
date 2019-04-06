@@ -23,6 +23,7 @@ class Blockchain(object):
         self.pending_transactions = []
         self.public_key = None
         self.private_key = None
+        self.balance = 0
         self.d = {"public_key": node_identifier}
         self.key = firebase.post('/nodes', self.d)
         # create genesis block
@@ -136,6 +137,19 @@ class Blockchain(object):
         firebase.post("/pending_transactions", transaction_dict)
         return self.last_block['index'] + 1
 
+    def get_balance(self):
+        # default balance
+        self.balance = 100
+        for block in self.chain:
+            for transaction in block['transactions']:
+                if transaction['sender'] == self.public_key:
+                    self.balance -= int(transaction['amount'])
+
+                if transaction['reciever'] == self.public_key:
+                    self.balance += int(transaction['amount'])
+
+        return self.balance
+
     @staticmethod
     def hash(block):
         """
@@ -235,7 +249,11 @@ def mine():
         amount=1,
     )
     previous_hash = blockchain.hash(last_block)
-    blockchain.current_transactions = firebase.get("/pending_transactions", None)
+    pending_transactions_firebase = firebase.get("/pending_transactions", None)
+    for transaction_id in pending_transactions_firebase:
+        transaction = firebase.get("/pending_transactions", transaction_id)
+        blockchain.current_transactions.append(transaction)
+
     block = blockchain.new_block(proof, previous_hash)
     firebase.delete('/pending_transactions', None)
     response = {
@@ -302,12 +320,19 @@ def dashboard():
             "url": request.url_root,
         }
         blockchain.firebase_identifier = firebase.post('/nodes', tmp_dict)
+    # update balance
+    blockchain.get_balance()
     return render_template("dashboard.html", blockchain=blockchain)
 
 
 @app.route('/send-rashi')
 def send_rashi():
     return render_template("send-rashi.html", blockchain=blockchain)
+
+
+@app.route('/purchase-rashi')
+def purchase_rashi():
+    return render_template("purchase-rashi.html", blockchain=blockchain)
 
 
 def manage_nodes(response):
@@ -322,7 +347,7 @@ firebase.get_async('/nodes', None, callback=manage_nodes)
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8080)
+    app.run(debug=True, host='0.0.0.0', port=8000)
 
 
 """

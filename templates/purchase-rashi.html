@@ -50,7 +50,7 @@
     </nav>
     <div class="container">
         <div class="row">
-            <div class="col-md-10 col-md-offset-1 main-section">
+            <div class="col-md-8 col-md-offset-2 main-section">
                 <div class="row">
                     <div class="col-md-4" style="text-align: center; padding-top: 20px; ">
                         <img src="images/icon.png"/><br><br>
@@ -61,38 +61,23 @@
                         <p>Balance : <b>{{ blockchain.balance}} Rashi(s)</b></p>
                     </div>
                     <div class="col-md-8">
-                        <div class="buttons text-right">
-                            <a class="btn btn-primary" href="\send-rashi">Send</a>&nbsp;&nbsp; 
-                            <a class="btn btn-primary" href="\purchase-rashi">Purchase</a>
-                        </div>
-                        <br>
-                        <br>
-                        <h4>Your Transactions</h4>
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Sender</th>
-                                        <th>reciever</th>
-                                        <th>Rashi(s)</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for block in blockchain.chain %}
-                                        {% for trans in block.transactions %}
-                                            {% if blockchain.public_key in trans.values() %}
-                                            {% set is_any_transaction = 1 %}
-                                            <tr>
-                                                <td>{{ trans.sender }}</td>
-                                                <td>{{ trans.reciever }}</td>
-                                                <td>{{ trans.amount }}</td>
-                                            </tr>
-                                            {% endif %}
-                                        {% endfor %}
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
+                        <p><a href="/dashboard"><< Back to Dashboard</a></p>
+                        <h3>Purchase Rashi</h3>
+                        <form action="/payment">
+                            <div class="form-group">
+                                <label for="sender-address" >Price per Rashi in Rupees:</label>
+                                <input type="text" class="form-control" id="price" value="1572" readonly />
+                            </div>
+                            <div class="form-group">
+                                <label for="reciever-address" >Total Rashi :</label>
+                                <input type="text" class="form-control" id="total-rashi" autocomplete="off" />
+                            </div>
+                            <div class="form-group" id="rashi-div">
+                                <label for="rashi" >Total Payable Amount:</label>
+                                <input type="number" class="form-control" id="total-amount" readonly/>
+                            </div>
+                            <button id="make-transaction" class="btn btn-primary btn-block">Pay Now</button>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -112,14 +97,21 @@
         <h4 class="modal-title">Your Private Key</h4>
       </div>
       <div class="modal-body">
-        <p><b>{{blockchain.private_key}}</b></p>
+        <p><b>{{ blockchain.private_key}}</b></p>
         <p>Do not share this private key with someone else.</p>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-default" onclick="myFunction()">Copy</button>
         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
       </div>
     </div>
 
   </div>
 </div>
+
+<script>
+    // check for input rashi value
+    $("#total-rashi").keyup(function(){
+        var amt = $(this).val() * 1572;
+        $("#total-amount").val(amt);
+    });
+</script>
