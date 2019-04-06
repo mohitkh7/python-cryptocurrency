@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Rashi - Your own cryptocurrency</title>
+
+    <!-- Bootstrap Css files -->
+    <!-- Latest compiled and minified CSS -->
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script> 
+    <style>
+        body{
+            padding-top: 70px;
+            /*background-color: #bbb;*/
+            background-image: url("images/b1.jpg");
+            background-repeat: no-repeat;
+        }
+        #node-addresses{
+            height: 100px;
+            overflow-y: scroll;
+        }
+        .main-section{
+            background-color: #fff;
+            height:500px;
+            box-shadow: 10px 10px 5px grey;
+            padding: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="/">Rashi <small> - Your Own Cryptocurrency</small></a>
+            </div>
+            <ul class="nav navbar-nav navbar-right">
+                <li class="active"><a href="#">Home</a></li>
+                <li><a href="#">Page 1</a></li>
+                <li><a href="#">Page 2</a></li>
+                <li><a href="#">Page 3</a></li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2 main-section">
+                <div class="row">
+                    <div class="col-md-4" style="text-align: center; padding-top: 20px; ">
+                        <img src="images/icon.png"/><br><br>
+                        <h3>Account 1</h3>
+                        <p>Public Key : {{blockchain.public_key}}</p>
+                        <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#myModal">Show Private Key</button>
+                    </div>
+                    <div class="col-md-8">
+                        <p><a href="/dashboard"><< Back to Dashboard</a></p>
+                        <div class="alert alert-success" id="success-msg">
+                            <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                            <strong>Success!</strong> Transaction Pending (Waiting for mining) !
+                        </div>
+                        <div class="alert alert-warning" id="error-msg">
+                            <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                            <strong>Error!</strong> Something went wrong !
+                        </div>
+                        <h3>Send Rashi</h3>
+                        <form>
+                            <div class="form-group">
+                                <label for="sender-address" >Sender address:</label>
+                                <input type="text" class="form-control" id="sender-address" value="{{blockchain.public_key}}" readonly />
+                            </div>
+                            <div class="form-group">
+                                <label for="reciever-address" >Reciever address:</label>
+                                <input type="text" class="form-control" id="reciever-address" autocomplete="off" />
+                            </div>
+                            <div class="form-group">
+                                <label for="rashi" >Rashi:</label>
+                                <input type="number" class="form-control" id="rashi"/>
+                            </div>
+                            <button id="make-transaction" class="btn btn-success">Make Transaction</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+<!-- Modal -->
+<div id="myModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Your Private Key</h4>
+      </div>
+      <div class="modal-body">
+        <p><b>{{ blockchain.private_key}}</b></p>
+        <p>Do not share this private key with someone else.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+<script>
+    $(document).ready(function() {
+        $("#success-msg").hide();
+        $("#error-msg").hide();
+        // marking new transaction
+        $("#make-transaction").click(function(e) {
+            e.preventDefault();
+            var transaction_dict= {
+                'sender': $("#sender-address").val(),
+                'reciever': $("#reciever-address").val(),
+                'amount': $("#rashi").val(),
+            };
+            console.log($("#rashi").val());
+            $.ajax({
+                type: "POST",
+                url: "/transactions/new",
+                data: JSON.stringify(transaction_dict),
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                success: function(result) {
+                    $("#success-msg").show();
+                    console.log(result);
+                },
+                error: function(result) {
+                    $("#error-msg").show();
+                    console.log(result);
+                }
+            });
+        });
+    });
+</script>

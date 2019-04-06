@@ -4,16 +4,33 @@ import requests
 from time import time
 from uuid import uuid4
 from urllib.parse import urlparse
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
+
+# import firebase_admin
+# from firebase_admin import credentials, db
+
+from firebase import firebase
 
 
 class Blockchain(object):
+    global firebase
+    global node_identifier
+
     def __init__(self):
         self.chain = []
         self.current_transactions = []
         self.nodes = set()
+        self.pending_transactions = []
+        self.public_key = None
+        self.private_key = None
+        self.d = {"public_key": node_identifier}
+        self.key = firebase.post('/nodes', self.d)
         # create genesis block
         self.new_block(previous_hash=1, proof=1)
+
+    # Calling destructor
+    def __del__(self):
+        print("destructor")
 
     def register_node(self, address):
         """
@@ -104,12 +121,19 @@ class Blockchain(object):
         :param amount: <int> Amount
         :return: <int> The index of the block that will held transaction
         """
+        """
         self.current_transactions.append({
             'sender': sender,
             'reciever': reciever,
             'amount': amount,
         })
-
+        """
+        transaction_dict = {
+            'sender': sender,
+            'reciever': reciever,
+            'amount': amount,
+        }
+        firebase.post("/pending_transactions", transaction_dict)
         return self.last_block['index'] + 1
 
     @staticmethod
@@ -141,10 +165,23 @@ class Blockchain(object):
         guess_hash = hashlib.sha256(guess).hexdigest()
         return guess_hash[:4] == "0000"
 
-# Instantiate our Node
-app = Flask(__name__)
+    def get_pending_transactions(self):
+        return self.current_transactions
 
-# generate global unique address
+
+# # Connecting to Firebase
+# cred = credentials.Certificate('key.json')
+# firebase_admin.initialize_app(cred, {
+#     'databaseURL': 'https://py-chain.firebaseio.com/'
+# })
+# database = db.reference()
+# connecting to firebase
+firebase = firebase.FirebaseApplication('https://py-chain.firebaseio.com', None)
+
+# Instantiate our Node
+app = Flask(__name__, static_url_path='')
+
+# Generate global unique identifier
 node_identifier = str(uuid4()).replace('-', '')
 
 # Instantiate Blockchain
@@ -154,10 +191,13 @@ blockchain = Blockchain()
 @app.route('/nodes/register', methods=['POST'])
 def register_nodes():
     values = request.get_json()
+    print("values")
+    print(values)
     nodes = values.get('nodes')
     if nodes is None:
         return "Error: Please supply a valid list of nodes", 400
     for node in nodes:
+        print(node)
         blockchain.register_node(node)
     response = {
         'message': 'New nodes have been added',
@@ -195,8 +235,9 @@ def mine():
         amount=1,
     )
     previous_hash = blockchain.hash(last_block)
+    blockchain.current_transactions = firebase.get("/pending_transactions", None)
     block = blockchain.new_block(proof, previous_hash)
-
+    firebase.delete('/pending_transactions', None)
     response = {
         'message': 'New block forged',
         'index': block['index'],
@@ -232,8 +273,56 @@ def full_chain():
     }
     return jsonify(response), 200
 
+
+@app.route('/admin')
+def index():
+    return render_template("index.html", blockchain=blockchain)
+
+
+@app.route('/')
+def welcome():
+    return render_template("welcome.html")
+
+
+@app.route('/wallet')
+def wallet():
+    return render_template("wallet.html")
+
+
+@app.route('/dashboard')
+def dashboard():
+    # Generate Keys
+    if blockchain.public_key is None:
+        blockchain.public_key = str(uuid4()).replace('-', '')
+        blockchain.private_key = str(uuid4()).replace('-', '')
+        # register user on network
+        tmp_dict = {
+            "public_key": blockchain.public_key,
+            "private_key": blockchain.private_key,
+            "url": request.url_root,
+        }
+        blockchain.firebase_identifier = firebase.post('/nodes', tmp_dict)
+    return render_template("dashboard.html", blockchain=blockchain)
+
+
+@app.route('/send-rashi')
+def send_rashi():
+    return render_template("send-rashi.html", blockchain=blockchain)
+
+
+def manage_nodes(response):
+    temp_set = set()
+    for fb_id in response:
+        temp_set.add(response[fb_id]["public_key"])
+    blockchain.nodes = temp_set
+
+
+# async function
+firebase.get_async('/nodes', None, callback=manage_nodes)
+
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=8080)
 
 
 """

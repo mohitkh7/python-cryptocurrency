@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Rashi - Your own cryptocurrency</title>
+
+    <!-- Bootstrap Css files -->
+    <!-- Latest compiled and minified CSS -->
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        body{
+            padding-top: 70px;
+        }
+        #node-addresses{
+            height: 100px;
+            overflow-y: scroll;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="#">Rashi <small> - Your Own Cryptocurrency</small></a>
+            </div>
+            <ul class="nav navbar-nav navbar-right">
+                <li class="active"><a href="#">Home</a></li>
+                <li><a href="#">Page 1</a></li>
+                <li><a href="#">Page 2</a></li>
+                <li><a href="#">Page 3</a></li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <form>
+                    <div class="form-group">
+                        <label for="node-address">Node address:</label>
+                        <textarea id="add-nodes-input" class="span6 form-control" rows="3" placeholder="Enter other node address in the network" required></textarea>
+
+                    </div>
+                    <button id="add-nodes" class="btn btn-success">Add Nodes</button>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <h3>Nodes in Network : </h3>
+                <ul>
+                    <div id="node-addresses" style="">
+                        {% for node in blockchain.nodes %}
+                            <li>{{ node }}</li>
+                        {% endfor %}
+                    </div>
+                </ul>
+            </div>
+        </div>
+        <!-- // row -->
+        <hr>
+        <hr>
+        <!-- Making Transactions -->
+        <div class="row">
+            <div class="col-md-6 col-md-offset-3">
+                <form>
+                    <div class="form-group">
+                        <label for="sender-address" >Sender address:</label>
+                        <input type="text" class="form-control" id="sender-address"/>
+                    </div>
+                    <div class="form-group">
+                        <label for="reciever-address" >Reciever address:</label>
+                        <input type="text" class="form-control" id="reciever-address"/>
+                    </div>
+                    <div class="form-group">
+                        <label for="rashi" >Rashi:</label>
+                        <input type="number" class="form-control" id="rashi"/>
+                    </div>
+                    <button id="make-transaction" class="btn btn-success">Make Transaction</button>
+                </form>
+            </div>
+        </div>
+        <!-- // row -->
+
+        <hr>
+        <hr>
+        <button id="mine" class="btn btn-warning">Mine</button>
+        <br>
+        <!-- List Chain Status -->
+        <hr>
+        <hr>
+        <p>
+            <h4>Chain :</h4>
+            <ul>
+            {% for block in blockchain.chain %}
+                <li>{{ block }}</li>
+                <br>
+            {% endfor %}
+            </ul>
+        </p>
+    </div>
+
+    <!-- calling blockchain APIs -->
+    <script>
+        $(document).ready(function() {
+            $("#add-nodes").click(function(e) {
+                e.preventDefault();
+                nodes_dict = {
+                    "nodes": $("#add-nodes-input").val().split("\n"),
+                }
+                console.log(nodes_dict);
+                $.ajax({
+                    type: "POST",
+                    url: "/nodes/register",
+                    // data: {
+                    //     // nodes: $("add-nodes-input").val(),
+                    //     nodes: "mohit",
+                    // },
+                    data: JSON.stringify(nodes_dict),
+                    contentType: 'application/json; charset=utf-8',
+                    dataType: 'json',
+                    success: function(result) {
+                        alert('ok');
+                        console.log(result);
+                    },
+                    error: function(result) {
+                        alert('error');
+                        console.log(result);
+                    }
+                });
+            });
+
+            // mining due transaction
+            $("#mine").click(function(e) {
+                e.preventDefault();
+                $.ajax({
+                    type: "GET",
+                    url: "/mine",
+                    success: function(result) {
+                        alert('block mined');
+                        console.log(result);
+                    },
+                    error: function(result) {
+                        alert('error');
+                        alert(result.msg);
+                    }
+                });
+            });
+
+
+            // marking new transaction
+            $("#make-transaction").click(function(e) {
+                e.preventDefault();
+                var transaction_dict= {
+                    'sender': $("#sender-address").val(),
+                    'reciever': $("#reciever-address").val(),
+                    'amount': $("#rashi").val(),
+                };
+                console.log($("#rashi").val());
+                $.ajax({
+                    type: "POST",
+                    url: "/transactions/new",
+                    data: JSON.stringify(transaction_dict),
+                    contentType: 'application/json; charset=utf-8',
+                    dataType: 'json',
+                    success: function(result) {
+                        alert('Transaction Pending (Waiting for mining)');
+                        console.log(result);
+                    },
+                    error: function(result) {
+                        alert('error');
+                        console.log(result);
+                    }
+                });
+            });
+
+        });
+
+</script>
+   
+</body>
+</html>
