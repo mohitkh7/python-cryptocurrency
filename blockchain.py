@@ -7,31 +7,27 @@ from uuid import uuid4
 from urllib.parse import urlparse
 from flask import Flask, jsonify, request, render_template
 
-# import firebase_admin
-# from firebase_admin import credentials, db
-
 from firebase import firebase
 
 
 class Blockchain(object):
     global firebase
     global node_identifier
+    DEFAULT_COIN = 100
 
     def __init__(self):
         self.chain = []
         self.current_transactions = []
         self.nodes = [
-            "127.0.0.1:8000",
-            "127.0.0.1:8001",
-            "127.0.0.1:8002",
-            "127.0.0.1:8080",
+            '127.0.0.1:8000',
+            '127.0.0.1:8001',
+            '127.0.0.1:8002',
+
         ]
         self.pending_transactions = []
         self.public_key = str(uuid4()).replace('-', '')
         self.private_key = str(uuid4()).replace('-', '')
-        self.balance = 100
-        self.d = {"public_key": self.public_key}
-        self.key = firebase.post('/nodes', self.d)
+        self.balance = self.DEFAULT_COIN
         # create genesis block
         self.new_block(previous_hash=1, proof=1)
 
@@ -82,24 +78,22 @@ class Blockchain(object):
         max_length = len(self.chain)
 
         # Grab and verify the chains from all the nodes in our network
+        print(neighbours)
         for node in neighbours:
-            print('sd')
             print(node)
-            try:
-                response = requests.get("http://{}/chain".format(node))
-                if response.status_code == 200:
-                    length = response.json()['length']
-                    chain = response.json()['chain']
+            response = requests.get("http://{}/chains".format(node))
+            if response.status_code == 200:
+                length = response.json()['length']
+                chain = response.json()['chain']
 
-                    if length > max_length and self.valid_chain(chain):
-                        max_length = length
-                        new_chain = chain
-                if new_chain:
-                    self.chain = new_chain
-                    return True
-            except Exception as e:
-                print(e)
-            return False
+                if length > max_length and self.valid_chain(chain):
+                    max_length = length
+                    new_chain = chain
+
+        if new_chain:
+            self.chain = new_chain
+            return True
+        return False
 
     def new_block(self, proof, previous_hash):
         """
@@ -136,6 +130,7 @@ class Blockchain(object):
             'amount': amount,
         })
         """
+        # self.resolve_conflicts()
         transaction_dict = {
             'sender': sender,
             'reciever': reciever,
@@ -146,7 +141,7 @@ class Blockchain(object):
 
     def get_balance(self):
         # default balance
-        self.balance = 100
+        self.balance = self.DEFAULT_COIN
         for block in self.chain:
             for transaction in block['transactions']:
                 if transaction['sender'] == self.public_key:
@@ -189,13 +184,6 @@ class Blockchain(object):
     def get_pending_transactions(self):
         return self.current_transactions
 
-
-# # Connecting to Firebase
-# cred = credentials.Certificate('key.json')
-# firebase_admin.initialize_app(cred, {
-#     'databaseURL': 'https://py-chain.firebaseio.com/'
-# })
-# database = db.reference()
 # connecting to firebase
 firebase = firebase.FirebaseApplication('https://py-chain.firebaseio.com', None)
 
@@ -212,13 +200,10 @@ blockchain = Blockchain()
 @app.route('/nodes/register', methods=['POST'])
 def register_nodes():
     values = request.get_json()
-    print("values")
-    print(values)
     nodes = values.get('nodes')
     if nodes is None:
         return "Error: Please supply a valid list of nodes", 400
     for node in nodes:
-        print(node)
         blockchain.register_node(node)
     response = {
         'message': 'New nodes have been added',
@@ -245,6 +230,7 @@ def consensus():
 
 @app.route('/mine', methods=['GET'])
 def mine():
+    # blockchain.resolve_conflicts()
     last_block = blockchain.last_block
     last_proof = last_block['proof']
     proof = blockchain.proof_of_work(last_proof)
@@ -252,7 +238,7 @@ def mine():
     # User recieve reward for finding PoW
     blockchain.new_transaction(
         sender="0",
-        reciever=node_identifier,
+        reciever=blockchain.public_key,
         amount=1,
     )
     previous_hash = blockchain.hash(last_block)
@@ -276,7 +262,6 @@ def mine():
 
 @app.route('/transactions/new', methods=['POST'])
 def new_transaction():
-    print(request.get_data())
     values = request.get_json()
     required = ['sender', 'reciever', 'amount']
     for k in required:
@@ -290,7 +275,7 @@ def new_transaction():
     return jsonify(response), 201
 
 
-@app.route('/chain', methods=['GET'])
+@app.route('/chains', methods=['GET'])
 def full_chain():
     response = {
         'chain': blockchain.chain,
@@ -301,6 +286,7 @@ def full_chain():
 
 @app.route('/admin')
 def index():
+    # blockchain.resolve_conflicts()
     return render_template("index.html", blockchain=blockchain)
 
 
@@ -316,17 +302,7 @@ def wallet():
 
 @app.route('/dashboard')
 def dashboard():
-    # Generate Keys
-    if blockchain.public_key is None:
-        blockchain.public_key = str(uuid4()).replace('-', '')
-        blockchain.private_key = str(uuid4()).replace('-', '')
-        # register user on network
-        tmp_dict = {
-            "public_key": blockchain.public_key,
-            "private_key": blockchain.private_key,
-            "url": request.url_root,
-        }
-        blockchain.firebase_identifier = firebase.post('/nodes', tmp_dict)
+    # blockchain.resolve_conflicts()
     # update balance
     blockchain.get_balance()
     return render_template("dashboard.html", blockchain=blockchain)
@@ -352,11 +328,9 @@ def payment_successful():
     return render_template("payment-successful.html")
 
 
-def manage_nodes(response):
-    temp_set = set()
-    for fb_id in response:
-        temp_set.add(response[fb_id]["public_key"])
-    blockchain.nodes = temp_set
+@app.route('/docs')
+def docs():
+    return render_template("info.html")
 
 
 if __name__ == '__main__':
@@ -364,7 +338,7 @@ if __name__ == '__main__':
         port_no = sys.argv[1]
     except:
         port_no = 8000
-    app.run(debug=False, host='0.0.0.0', port=port_no)
+    app.run(debug=True, port=port_no)
 
 
 """
