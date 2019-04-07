@@ -38,7 +38,7 @@ class Blockchain(object):
         :return: None
         """
         parsed_url = urlparse(address)
-        self.nodes.add(parsed_url.netloc)
+        self.nodes.append(parsed_url.netloc)
 
     def valid_chain(self, chain):
         """
@@ -77,9 +77,9 @@ class Blockchain(object):
         max_length = len(self.chain)
 
         # Grab and verify the chains from all the nodes in our network
-        print(neighbours)
         for node in neighbours:
-            print(node)
+            if node == request.host:
+                continue
             response = requests.get("http://{}/chains".format(node))
             if response.status_code == 200:
                 length = response.json()['length']

@@ -42,6 +42,60 @@
     </nav>
     <div class="container">
         <div class="row">
+            <button id="mine" class="btn btn-warning">Mine</button>
+            <br>
+            <!-- List Chain Status -->
+            <hr>
+            <hr>
+            <p>
+            <h4>Chain :</h4>
+            <ul>
+            {% for block in blockchain.chain %}
+                <div class="panel-group">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-toggle="collapse" href="#collapse{{block.index}}">Block {{block.index}}</a>
+                            </h4>
+                        </div>
+                        <div id="collapse{{block.index}}" class="panel-collapse collapse">
+                            <div class="panel-body">
+                                <ul>
+                                    <li><b>Index : </b>{{ block.index }}</li>
+                                    <li><b>Timestamp : </b>{{ block.timestamp }}</li>
+                                    <li><b>Previous Block Hash : </b>{{ block.previous_hash }}</li>
+                                    <li><b>Nounce : </b>{{ block.proof }}</li>
+                                    <li>Transactions : </li>
+                                    {% for transaction in block.transactions %}
+                                        <div class="panel-group">
+                                            <div class="panel panel-default">
+                                                <div class="panel-heading">
+                                                    <h4 class="panel-title">
+                                                        <a data-toggle="collapse" href="#transaction{{loop.index}}">Transaction {{loop.index}}</a>
+                                                    </h4>
+                                                </div>
+                                                <div id="transaction{{loop.index}}" class="panel-collapse collapse">
+                                                    <div class="panel-body">
+                                                        <ul>
+                                                            <li> <b>Sender</b> : {{transaction.sender}}</li>
+                                                            <li> <b>Reciever</b> : {{transaction.reciever}}</li>
+                                                            <li> <b>Rashi(s)</b> : {{transaction.amount}}</li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+            </ul>
+        </p>
+        <hr>
+        <hr>
             <div class="col-md-6">
                 <form>
                     <div class="form-group">
@@ -90,58 +144,7 @@
 
         <hr>
         <hr>
-        <button id="mine" class="btn btn-warning">Mine</button>
-        <br>
-        <!-- List Chain Status -->
-        <hr>
-        <hr>
-        <p>
-            <h4>Chain :</h4>
-            <ul>
-            {% for block in blockchain.chain %}
-                <div class="panel-group">
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <h4 class="panel-title">
-                                <a data-toggle="collapse" href="#collapse{{block.index}}">Block {{block.index}}</a>
-                            </h4>
-                        </div>
-                        <div id="collapse{{block.index}}" class="panel-collapse collapse">
-                            <div class="panel-body">
-                                <ul>
-                                    <li><b>Index : </b>{{ block.index }}</li>
-                                    <li><b>Timestamp : </b>{{ block.timestamp }}</li>
-                                    <li><b>Previous Block Hash : </b>{{ block.previous_hash }}</li>
-                                    <li><b>Nounce : </b>{{ block.proof }}</li>
-                                    <li>Transactions : </li>
-                                    {% for transaction in block.transactions %}
-                                        <div class="panel-group">
-                                            <div class="panel panel-default">
-                                                <div class="panel-heading">
-                                                    <h4 class="panel-title">
-                                                        <a data-toggle="collapse" href="#transaction{{loop.index}}">Transaction {{loop.index}}</a>
-                                                    </h4>
-                                                </div>
-                                                <div id="transaction{{loop.index}}" class="panel-collapse collapse">
-                                                    <div class="panel-body">
-                                                        <ul>
-                                                            <li> <b>Sender</b> : {{transaction.sender}}</li>
-                                                            <li> <b>Reciever</b> : {{transaction.reciever}}</li>
-                                                            <li> <b>Rashi(s)</b> : {{transaction.amount}}</li>
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    {% endfor %}
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
-            </ul>
-        </p>
+        
     </div>
 
     <!-- calling blockchain APIs -->
