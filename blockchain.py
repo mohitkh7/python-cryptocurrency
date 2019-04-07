@@ -20,24 +20,20 @@ class Blockchain(object):
     def __init__(self):
         self.chain = []
         self.current_transactions = []
-        self.nodes = set(
+        self.nodes = [
             "127.0.0.1:8000",
             "127.0.0.1:8001",
             "127.0.0.1:8002",
             "127.0.0.1:8080",
-        )
+        ]
         self.pending_transactions = []
-        self.public_key = None
-        self.private_key = None
-        self.balance = 0
-        self.d = {"public_key": node_identifier}
+        self.public_key = str(uuid4()).replace('-', '')
+        self.private_key = str(uuid4()).replace('-', '')
+        self.balance = 100
+        self.d = {"public_key": self.public_key}
         self.key = firebase.post('/nodes', self.d)
         # create genesis block
         self.new_block(previous_hash=1, proof=1)
-
-    # Calling destructor
-    def __del__(self):
-        print("destructor")
 
     def register_node(self, address):
         """
@@ -87,17 +83,22 @@ class Blockchain(object):
 
         # Grab and verify the chains from all the nodes in our network
         for node in neighbours:
-            response = requests.get("http://{}/chain".format(node))
-            if response.status_code == 200:
-                length = response.json()['length']
-                chain = response.json()['chain']
+            print('sd')
+            print(node)
+            try:
+                response = requests.get("http://{}/chain".format(node))
+                if response.status_code == 200:
+                    length = response.json()['length']
+                    chain = response.json()['chain']
 
-                if length > max_length and self.valid_chain(chain):
-                    max_length = length
-                    new_chain = chain
-            if new_chain:
-                self.chain = new_chain
-                return True
+                    if length > max_length and self.valid_chain(chain):
+                        max_length = length
+                        new_chain = chain
+                if new_chain:
+                    self.chain = new_chain
+                    return True
+            except Exception as e:
+                print(e)
             return False
 
     def new_block(self, proof, previous_hash):
@@ -358,14 +359,10 @@ def manage_nodes(response):
     blockchain.nodes = temp_set
 
 
-# async function
-firebase.get_async('/nodes', None, callback=manage_nodes)
-
-
 if __name__ == '__main__':
-    if sys.argv[1]:
+    try:
         port_no = sys.argv[1]
-    else:
+    except:
         port_no = 8000
     app.run(debug=False, host='0.0.0.0', port=port_no)
 
