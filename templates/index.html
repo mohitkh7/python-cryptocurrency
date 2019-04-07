@@ -22,6 +22,19 @@
             height: 100px;
             overflow-y: scroll;
         }
+        .loader {
+          border: 6px solid #f3f3f3; /* Light grey */
+          border-top: 6px solid #3498db; /* Blue */
+          border-radius: 50%;
+          width: 40px;
+          height: 40px;
+          animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 
@@ -42,8 +55,11 @@
     </nav>
     <div class="container">
         <div class="row">
+
             <button id="mine" class="btn btn-warning">Mine</button>
-            <br>
+            <br><br>
+            <div class="loader"></div>
+
             <!-- List Chain Status -->
             <hr>
             <hr>
@@ -150,6 +166,8 @@
     <!-- calling blockchain APIs -->
     <script>
         $(document).ready(function() {
+            $(".loader").hide();
+
             $("#add-nodes").click(function(e) {
                 e.preventDefault();
                 nodes_dict = {
@@ -180,12 +198,15 @@
             // mining due transaction
             $("#mine").click(function(e) {
                 e.preventDefault();
+                $(".loader").show();
                 $.ajax({
                     type: "GET",
                     url: "/mine",
                     success: function(result) {
                         alert('block mined');
                         console.log(result);
+                        $(".loader").hide();
+
                     },
                     error: function(result) {
                         alert('error');
