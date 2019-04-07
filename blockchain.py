@@ -21,8 +21,7 @@ class Blockchain(object):
         self.nodes = [
             '127.0.0.1:8000',
             '127.0.0.1:8001',
-            '127.0.0.1:8002',
-
+            '127.0.0.1:8002'
         ]
         self.pending_transactions = []
         self.public_key = str(uuid4()).replace('-', '')
